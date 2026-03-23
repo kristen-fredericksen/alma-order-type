@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUNY Alma Order Type Decision Tree</title>
+<style>
+  :root {
+    --cuny-blue: #003082;
+    --cuny-gold: #f0ab00;
+    --cuny-light-blue: #e8edf5;
+    --cuny-dark: #1a1a2e;
+    --success-green: #1b6e20;
+    --success-bg: #e8f5e9;
+    --success-border: #81c784;
+    --warning-amber: #bf360c;
+    --warning-bg: #fff3e0;
+    --warning-border: #ffcc80;
+    --info-bg: #f5f7fa;
+    --info-border: #c5cdd8;
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a5568;
+    --bg-white: #ffffff;
+    --border-light: #dde2ea;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Global focus styles */
+  *:focus-visible {
+    outline: 3px solid var(--cuny-blue);
+    outline-offset: 2px;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f2f5;
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Skip link */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: var(--cuny-blue);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    z-index: 1000;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  header {
+    background: var(--cuny-blue);
+    color: white;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  header h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  header p {
+    font-size: 1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  /* Breadcrumb trail */
+  nav[aria-label="Decision path"] {
+    margin-bottom: 1.25rem;
+    min-height: 1.5rem;
+  }
+
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    list-style: none;
+    padding: 0;
+  }
+
+  .breadcrumb li {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .breadcrumb-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--cuny-blue);
+    font-family: inherit;
+    font-size: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0.15rem 0.25rem;
+    border-radius: 3px;
+  }
+
+  .breadcrumb-btn:hover {
+    background: var(--cuny-light-blue);
+  }
+
+  .breadcrumb-sep {
+    color: #aab;
+    margin: 0 0.1rem;
+  }
+
+  .breadcrumb-current {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* Question card */
+  .card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-text {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--cuny-blue);
+    margin-bottom: 1.25rem;
+  }
+
+  .question-text:focus {
+    outline: none;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: var(--info-bg);
+    border: 1.5px solid var(--border-light);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+    line-height: 1.5;
+    width: 100%;
+  }
+
+  .option-btn:hover {
+    border-color: var(--cuny-blue);
+    background: var(--cuny-light-blue);
+  }
+
+  .option-btn:active {
+    transform: scale(0.995);
+  }
+
+  .option-label {
+    font-weight: 600;
+    display: block;
+  }
+
+  .option-desc {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    margin-top: 0.15rem;
+    display: block;
+  }
+
+  /* Result card */
+  .result-card {
+    background: var(--success-bg);
+    border: 1.5px solid var(--success-border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .result-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--success-green);
+    margin-bottom: 0.4rem;
+  }
+
+  .result-type {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--success-green);
+    margin-bottom: 0.75rem;
+  }
+
+  .result-type:focus {
+    outline: none;
+  }
+
+  .result-explanation {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .result-explanation p {
+    margin-bottom: 0.5rem;
+  }
+
+  .result-explanation p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Tip box */
+  .tip-box {
+    background: var(--warning-bg);
+    border: 1.5px solid var(--warning-border);
+    border-radius: 6px;
+    padding: 1rem 1.15rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .tip-box strong {
+    color: var(--warning-amber);
+  }
+
+  /* Start over button */
+  /* Navigation buttons */
+  .nav-buttons {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-white);
+    color: var(--cuny-blue);
+    border: 1.5px solid var(--cuny-blue);
+    border-radius: 6px;
+    padding: 0.65rem 1.25rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    line-height: 1.2;
+  }
+
+  .back-btn:hover {
+    background: var(--cuny-light-blue);
+  }
+
+  .start-over {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--cuny-blue);
+    color: white;
+    border: 1.5px solid var(--cuny-blue);
+    border-radius: 6px;
+    padding: 0.65rem 1.25rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    line-height: 1.2;
+  }
+
+  .start-over:hover {
+    background: #002060;
+  }
+
+  /* Tooltip as toggle button */
+  .tooltip-wrapper {
+    display: inline-block;
+    position: relative;
+  }
+
+  .tooltip-btn {
+    background: none;
+    border: 1.5px solid var(--cuny-blue);
+    color: var(--cuny-blue);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    vertical-align: middle;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.35rem;
+  }
+
+  .tooltip-btn:hover {
+    background: var(--cuny-light-blue);
+  }
+
+  .tooltip-panel {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--cuny-dark);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.5;
+    width: 340px;
+    max-width: 90vw;
+    z-index: 100;
+    box-shadow: var(--shadow-md);
+  }
+
+  .tooltip-panel.visible {
+    display: block;
+  }
+
+  .tooltip-panel::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--cuny-dark);
+  }
+
+  /* "Looking for a different order type?" section */
+  .alt-section {
+    margin-top: 2rem;
+    border-top: 1px solid var(--border-light);
+    padding-top: 1.5rem;
+  }
+
+  .alt-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem 0;
+    transition: color 0.15s;
+  }
+
+  .alt-toggle:hover {
+    color: var(--cuny-blue);
+  }
+
+  .alt-toggle .chevron {
+    transition: transform 0.2s;
+    font-size: 0.75rem;
+    display: inline-block;
+  }
+
+  .alt-toggle[aria-expanded="true"] .chevron {
+    transform: rotate(90deg);
+  }
+
+  .alt-content {
+    display: none;
+    margin-top: 0.75rem;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .alt-content.visible {
+    display: block;
+  }
+
+  .alt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .alt-table th {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    background: var(--cuny-light-blue);
+    color: var(--cuny-blue);
+    font-weight: 700;
+    border-bottom: 2px solid var(--cuny-blue);
+  }
+
+  .alt-table td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+
+  .alt-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .alt-table .stop-using {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: #bbb;
+  }
+
+  .alt-table .use-instead {
+    font-weight: 600;
+    color: var(--cuny-blue);
+  }
+
+  .alt-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.55;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    header { padding: 1.5rem 1rem; }
+    header h1 { font-size: 1.4rem; }
+    .container { padding: 1rem; }
+    .card, .result-card { padding: 1.25rem; }
+    .question-text { font-size: 1.1rem; }
+    .tooltip-panel {
+      position: fixed;
+      bottom: auto;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 85vw;
+    }
+    .tooltip-panel::after { display: none; }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<header>
+  <h1>Alma Order Type Decision Tree</h1>
+  <p>Answer a few questions to find the recommended order type for your purchase.</p>
+</header>
+
+<main id="main-content" class="container">
+  <nav aria-label="Decision path">
+    <ol class="breadcrumb" id="breadcrumb"></ol>
+  </nav>
+
+  <div id="tree-content" aria-live="polite" aria-atomic="true"></div>
+
+  <section class="alt-section" id="altSection" style="display: none;">
+    <button class="alt-toggle" id="altToggle" type="button" aria-expanded="false" aria-controls="altContent">
+      <span class="chevron" aria-hidden="true">&#9654;</span>
+      Looking for a different order type?
+    </button>
+    <div class="alt-content" id="altContent" role="region" aria-label="Alternative order types">
+      <p class="alt-note">The order types below may be available in Alma but are not recommended at CUNY. Use the recommended type instead for a more consistent workflow.</p>
+      <table class="alt-table">
+        <caption class="visually-hidden">Mapping of non-recommended order types to their recommended alternatives</caption>
+        <thead>
+          <tr>
+            <th scope="col">Instead of&hellip;</th>
+            <th scope="col">Use</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="stop-using">Electronic Book - One Time</td>
+            <td class="use-instead">Electronic Title - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Electronic Book - Standing Order</td>
+            <td class="use-instead">Electronic Title - Standing Order</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Electronic Book - Subscription</td>
+            <td class="use-instead">Electronic Title - Subscription</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Electronic Journal - One Time</td>
+            <td class="use-instead">Electronic Title - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Electronic Journal - Subscription</td>
+            <td class="use-instead">Electronic Title - Subscription</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Print Book - One Time</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Print Book - Standing Order</td>
+            <td class="use-instead">Physical - Standing Order Monograph <em>or</em> Physical - Standing Order Non Monograph</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Print Journal - One Time</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Print Journal - Subscription</td>
+            <td class="use-instead">Physical - Subscription</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Manuscript</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Map</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Microform</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Mixed Material</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Musical Score</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Physical Computer File - One Time</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Physical Computer File - Subscription</td>
+            <td class="use-instead">Physical - Subscription</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Remote Computer File - One Time</td>
+            <td class="use-instead">Electronic Title - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Remote Computer File - Subscription</td>
+            <td class="use-instead">Electronic Title - Subscription</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Sound Recording</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Visual Material</td>
+            <td class="use-instead">Physical - One Time</td>
+          </tr>
+          <tr>
+            <td class="stop-using">Database Service - One Time</td>
+            <td class="use-instead">Electronic Collection - One Time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+const tree = {
+  id: 'root',
+  question: 'What are you ordering?',
+  options: [
+    {
+      label: 'A physical item',
+      desc: 'Book, DVD, score, map, calculator, or other tangible object',
+      next: {
+        id: 'physical',
+        question: 'How will you pay for this?',
+        options: [
+          {
+            label: 'One-time purchase',
+            desc: 'A single purchase with no ongoing commitment',
+            result: {
+              type: 'Physical - One Time',
+              explanation: '<p>Use this for any one-time purchase of a physical item: books, DVDs, maps, scores, microforms, mixed materials, and anything else you can hold in your hand.</p><p>Alma will expect you to <strong>receive</strong> the item when it arrives, then process an <strong>invoice</strong>. The order will close after that.</p>',
+            }
+          },
+          {
+            label: 'Standing order',
+            desc: 'Vendor ships new volumes in a set or series as they are published',
+            next: {
+              id: 'physical-so',
+              question: 'How are the volumes cataloged?',
+              options: [
+                {
+                  label: 'Each volume has its own catalog record',
+                  desc: 'Example: Ancient Christian Writers series',
+                  result: {
+                    type: 'Physical - Standing Order Monograph',
+                    explanation: '<p>Use this when each volume in a series or set gets its own bibliographic record, holdings record, and item record.</p><p>New volumes are received like one-time orders. They will not appear in the Continuous receiving queue.</p>',
+                  }
+                },
+                {
+                  label: 'All volumes share one catalog record',
+                  desc: 'Example: Guinness World Records',
+                  result: {
+                    type: 'Physical - Standing Order Non Monograph',
+                    explanation: '<p>Use this when all volumes share one bibliographic record and holdings record, with each volume treated like a journal issue.</p><p>New volumes are received like subscriptions. They will appear in the Continuous tab of the receiving queue.</p>',
+                  }
+                }
+              ]
+            }
+          },
+          {
+            label: 'Subscription',
+            desc: 'Open-ended or renewable order (e.g., journal, newspaper)',
+            result: {
+              type: 'Physical - Subscription',
+              explanation: '<p>Use this for recurring payments for a single physical title, such as a journal or newspaper subscription.</p><p>Alma manages renewal dates and expects ongoing receiving and invoicing. New issues appear in the Continuous tab of the receiving queue.</p>',
+            }
+          }
+        ]
+      }
+    },
+    {
+      label: 'A single electronic resource',
+      desc: 'Ebook, e-journal, streaming video, or other individual online resource',
+      next: {
+        id: 'e-single',
+        question: 'How will you pay for this?',
+        options: [
+          {
+            label: 'One-time purchase or license',
+            desc: 'A single purchase with no ongoing commitment',
+            next: {
+              id: 'e-single-ot',
+              question: 'Have you ordered this title before?',
+              tooltip: 'Check whether you\'ve previously placed an order for this title on the same platform (e.g., Kanopy unlimited users, Swank one-year license, 3 simultaneous users on EBSCOhost).',
+              tooltipId: 'tooltip-reorder',
+              options: [
+                {
+                  label: 'No',
+                  desc: 'This is the first order for this title on this platform',
+                  result: {
+                    type: 'Electronic Title - One Time',
+                    explanation: '<p>Use this for a one-time purchase or license of a single electronic resource: an ebook, an e-journal, a streaming video, or similar.</p><p>Alma will expect you to <strong>activate</strong> the resource (not physically receive it), then process an <strong>invoice</strong>. The order will close after that.</p>',
+                  }
+                },
+                {
+                  label: 'Yes',
+                  desc: 'There is already an order for this title on the same platform',
+                  result: {
+                    type: 'License Upgrade',
+                    explanation: '<p>Use this when you are re-purchasing or renewing a license for a title that already has an order attached to its electronic portfolio.</p><p>License Upgrade only needs to be attached to the bibliographic record, not the portfolio. This avoids creating a duplicate portfolio for the same title.</p>',
+                    tip: '<strong>Why not Electronic Title - One Time?</strong> You can only attach one order to one electronic portfolio. If you used Electronic Title - One Time again, you would need to create a second (inactive) portfolio, which clutters your inventory.'
+                  }
+                }
+              ]
+            }
+          },
+          {
+            label: 'Standing order',
+            desc: 'Vendor provides access to new volumes or editions as they are published',
+            result: {
+              type: 'Electronic Title - Standing Order',
+              explanation: '<p>Use this for an ongoing electronic series where the vendor provides new volumes or editions automatically.</p><p>The order remains open indefinitely, generating new activation and invoicing events over time.</p>',
+            }
+          },
+          {
+            label: 'Subscription',
+            desc: 'Open-ended or renewable access (e.g., e-journal subscription)',
+            result: {
+              type: 'Electronic Title - Subscription',
+              explanation: '<p>Use this for recurring access to a single electronic resource, such as an e-journal subscription or an annually renewed streaming video license.</p><p>Alma manages renewal dates and expects periodic invoicing.</p>',
+            }
+          }
+        ]
+      }
+    },
+    {
+      label: 'A package or collection of electronic resources',
+      desc: 'Database, ebook package, e-journal bundle, or other collection',
+      next: {
+        id: 'e-collection',
+        question: 'How will you pay for this?',
+        options: [
+          {
+            label: 'One-time purchase or fee',
+            desc: 'A single payment (e.g., JSTOR Archive Capital Fee)',
+            result: {
+              type: 'Electronic Collection - One Time',
+              explanation: '<p>Use this for a one-time purchase of or fee for a package of electronic resources, such as a database archive fee or a perpetual ebook collection.</p><p>Alma will expect you to <strong>activate</strong> the collection, then process an <strong>invoice</strong>. The order will close after that.</p>',
+            }
+          },
+          {
+            label: 'Subscription',
+            desc: 'Open-ended or renewable access (e.g., annual database subscription)',
+            result: {
+              type: 'Electronic Collection - Subscription',
+              explanation: '<p>Use this for ongoing access to a package of electronic resources, such as a database subscription or an annually renewed ebook collection.</p><p>Alma manages renewal dates and expects periodic invoicing.</p><p>If this is the "read" part of a transformative agreement, see <a href="https://knowledge.exlibrisgroup.com/Alma/Product_Documentation/010Alma_Online_Help_(English)/020Acquisitions/050Purchasing/Working_with_Open_Access_Agreements?mt-draft=true">Working with Open Access Agreements</a> for setup guidance.</p>',
+            }
+          }
+        ]
+      }
+    },
+    {
+      label: 'An access or hosting fee',
+      desc: 'Platform fee, hosting charge, or access fee for an electronic resource',
+      next: {
+        id: 'access-fee',
+        question: 'Is this a one-time fee or recurring?',
+        options: [
+          {
+            label: 'One-time',
+            desc: 'A single fee with no ongoing commitment',
+            next: {
+              id: 'access-fee-ot',
+              question: 'Is this fee for a single title or a collection/package?',
+              options: [
+                {
+                  label: 'A single title',
+                  desc: 'One ebook, e-journal, streaming video, etc.',
+                  result: {
+                    type: 'Electronic Title - One Time',
+                    explanation: '<p>Use this for a one-time fee for a single electronic resource.</p><p>Alma will expect you to <strong>activate</strong> the resource, then process an <strong>invoice</strong>. The order will close after that.</p>',
+                  }
+                },
+                {
+                  label: 'A collection or package',
+                  desc: 'Database, ebook package, e-journal bundle, etc.',
+                  result: {
+                    type: 'Electronic Collection - One Time',
+                    explanation: '<p>Use this for a one-time fee for a package of electronic resources, such as a database archive fee.</p><p>Alma will expect you to <strong>activate</strong> the collection, then process an <strong>invoice</strong>. The order will close after that.</p>',
+                  }
+                }
+              ]
+            }
+          },
+          {
+            label: 'Recurring',
+            desc: 'An ongoing fee (e.g., annual hosting charge)',
+            result: {
+              type: 'Access Service - Subscription',
+              explanation: '<p>Use this for recurring access or hosting fees tied to an electronic resource, such as platform hosting charges (e.g., SAGE or CQ Press hosting fees).</p><p>This order type creates inventory, so the cost will be connected to the resource in Alma for searching and reporting.</p>',
+              tip: '<strong>Make sure there\'s an electronic resource to attach this to.</strong> If the fee is not associated with an electronic collection or portfolio in Alma, use Other Service - Subscription instead.'
+            }
+          }
+        ]
+      }
+    },
+    {
+      label: 'Article processing charges (APC)',
+      desc: 'Fee to publish an article in an open-access journal',
+      next: {
+        id: 'apc',
+        question: 'Is this a one-time charge or recurring?',
+        options: [
+          {
+            label: 'One-time',
+            desc: 'A single APC for one article',
+            result: {
+              type: 'Article Processing Charges (APC) - One Time',
+              explanation: '<p>Use this for a one-time article processing charge, such as paying to publish a single article in an open-access journal.</p><p>If this is part of a transformative agreement, see <a href="https://knowledge.exlibrisgroup.com/Alma/Product_Documentation/010Alma_Online_Help_(English)/020Acquisitions/050Purchasing/Working_with_Open_Access_Agreements?mt-draft=true">Working with Open Access Agreements</a> for setup guidance.</p>',
+            }
+          },
+          {
+            label: 'Recurring',
+            desc: 'Ongoing APC agreement or membership',
+            result: {
+              type: 'Article Processing Charges (APC) - Subscription',
+              explanation: '<p>Use this for a recurring article processing charge arrangement, such as an ongoing APC agreement with a publisher.</p><p>If this is part of a transformative agreement, see <a href="https://knowledge.exlibrisgroup.com/Alma/Product_Documentation/010Alma_Online_Help_(English)/020Acquisitions/050Purchasing/Working_with_Open_Access_Agreements?mt-draft=true">Working with Open Access Agreements</a> for setup guidance.</p>',
+            }
+          }
+        ]
+      }
+    },
+    {
+      label: 'Something that is not a library resource',
+      desc: 'Supplies, memberships, equipment, document delivery',
+      next: {
+        id: 'other',
+        question: 'Is this a one-time expense or recurring?',
+        options: [
+          {
+            label: 'One-time',
+            desc: 'A single expense (e.g., one-time membership, equipment purchase)',
+            result: {
+              type: 'Other Service - One Time',
+              explanation: '<p>Use this for a non-recurring expense that is not a physical or electronic library resource: supplies, one-time memberships, equipment purchases, and similar purchases.</p><p>This order type does <strong>not</strong> create inventory. The order will only be findable through the order lines search in Alma, not through title or inventory searches.</p>',
+              tip: '<strong>No inventory means limited visibility.</strong> Use Other Service only when the purchase genuinely has nothing to do with a library resource. If the expense is related to an electronic resource, consider using an order type attached to the resource instead so the cost is connected to the resource for optimal searching and reporting.'
+            }
+          },
+          {
+            label: 'Recurring',
+            desc: 'An ongoing expense (e.g., annual membership, document delivery service)',
+            result: {
+              type: 'Other Service - Subscription',
+              explanation: '<p>Use this for a recurring expense that is not a physical or electronic library resource: annual memberships, document delivery services, ongoing service contracts, and similar commitments.</p><p>This order type does <strong>not</strong> create inventory. The order will only be findable through the order lines search in Alma, not through title or inventory searches.</p>',
+              tip: '<strong>No inventory means limited visibility.</strong> Use Other Service only when the purchase genuinely has nothing to do with a library resource. If the expense is related to an electronic resource, consider using an order type attached to the resource instead so the cost is connected to the resource for optimal searching and reporting.'
+            }
+          }
+        ]
+      }
+    }
+  ]
+};
+
+let history = [];
+let openTooltipId = null;
+
+function render() {
+  const contentEl = document.getElementById('tree-content');
+  const breadcrumbEl = document.getElementById('breadcrumb');
+
+  if (history.length === 0) {
+    renderNode(tree, contentEl);
+    breadcrumbEl.innerHTML = '';
+    showAltSection(false);
+    return;
+  }
+
+  // Build breadcrumb as ordered list items
+  let crumbs = '';
+  for (let i = 0; i < history.length; i++) {
+    const entry = history[i];
+    if (i < history.length - 1) {
+      crumbs += '<li>' +
+        '<span>' + escapeHtml(entry.choiceLabel) + '</span>' +
+        '<span class="breadcrumb-sep" aria-hidden="true">&#8250;</span>' +
+        '</li>';
+    } else {
+      crumbs += '<li aria-current="step"><span class="breadcrumb-current">' +
+        escapeHtml(entry.choiceLabel) + '</span></li>';
+    }
+  }
+  breadcrumbEl.innerHTML = crumbs;
+
+  // Get current content
+  const lastEntry = history[history.length - 1];
+  const option = lastEntry.option;
+
+  if (option.result) {
+    renderResult(option.result, contentEl);
+    showAltSection(true);
+  } else if (option.next) {
+    renderNode(option.next, contentEl);
+    showAltSection(false);
+  }
+}
+
+function renderNode(node, container) {
+  var tooltipHtml = '';
+  if (node.tooltip) {
+    var tipId = node.tooltipId || 'tooltip-default';
+    tooltipHtml =
+      '<span class="tooltip-wrapper">' +
+        '<button type="button" class="tooltip-btn" ' +
+          'aria-label="More information about this question" ' +
+          'aria-expanded="false" ' +
+          'aria-controls="' + tipId + '" ' +
+          'onclick="toggleTooltip(this, \'' + tipId + '\')">' +
+          '<span aria-hidden="true">?</span>' +
+        '</button>' +
+        '<span class="tooltip-panel" id="' + tipId + '" role="tooltip">' +
+          escapeHtml(node.tooltip) +
+        '</span>' +
+      '</span>';
+  }
+
+  var questionId = 'question-' + (node.id || 'root');
+
+  var html = '<div class="card" role="group" aria-labelledby="' + questionId + '">' +
+    '<h2 class="question-text" id="' + questionId + '" tabindex="-1">' +
+      node.question + tooltipHtml +
+    '</h2>' +
+    '<div class="options">';
+
+  node.options.forEach(function(opt, i) {
+    var descHtml = opt.desc
+      ? '<span class="option-desc">' + escapeHtml(opt.desc) + '</span>'
+      : '';
+    html +=
+      '<button class="option-btn" type="button" onclick="choose(' + i + ')">' +
+        '<span>' +
+          '<span class="option-label">' + escapeHtml(opt.label) + '</span>' +
+          descHtml +
+        '</span>' +
+      '</button>';
+  });
+
+  html += '</div>';
+
+  // Add back button if not on the first question
+  if (history.length > 0) {
+    html += '<div class="nav-buttons">' +
+      '<button class="back-btn" type="button" onclick="goBackOne()">' +
+      '<span aria-hidden="true">&larr;</span> Back</button>' +
+      '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Move focus to the question heading so screen readers announce the new step
+  requestAnimationFrame(function() {
+    var heading = document.getElementById(questionId);
+    if (heading && history.length > 0) {
+      heading.focus();
+    }
+  });
+}
+
+function renderResult(result, container) {
+  var tipHtml = '';
+  if (result.tip) {
+    tipHtml = '<aside class="tip-box" aria-label="Tip">' + result.tip + '</aside>';
+  }
+
+  var resultHeadingId = 'result-heading';
+
+  container.innerHTML =
+    '<section class="result-card" aria-labelledby="' + resultHeadingId + '">' +
+      '<p class="result-label">Recommended order type</p>' +
+      '<h2 class="result-type" id="' + resultHeadingId + '" tabindex="-1">' +
+        escapeHtml(result.type) +
+      '</h2>' +
+      '<div class="result-explanation">' +
+        result.explanation +
+        tipHtml +
+      '</div>' +
+    '</section>' +
+    '<div class="nav-buttons">' +
+    '<button class="back-btn" type="button" onclick="goBackOne()">' +
+    '<span aria-hidden="true">&larr;</span> Back</button>' +
+    '<button class="start-over" type="button" onclick="startOver()">' +
+    'Start over</button>' +
+    '</div>';
+
+  // Move focus to the result heading
+  requestAnimationFrame(function() {
+    var heading = document.getElementById(resultHeadingId);
+    if (heading) {
+      heading.focus();
+    }
+  });
+}
+
+function getCurrentNode() {
+  if (history.length === 0) return tree;
+  var lastEntry = history[history.length - 1];
+  return lastEntry.option.next || null;
+}
+
+function choose(optionIndex) {
+  var currentNode = getCurrentNode();
+  if (!currentNode) return;
+
+  var option = currentNode.options[optionIndex];
+  history.push({
+    nodeId: currentNode.id,
+    choiceLabel: option.label,
+    optionIndex: optionIndex,
+    option: option
+  });
+
+  closeAllTooltips();
+  render();
+}
+
+function goBack(toIndex) {
+  history = history.slice(0, toIndex);
+  closeAllTooltips();
+  render();
+}
+
+function goBackOne() {
+  if (history.length > 0) {
+    history.pop();
+    closeAllTooltips();
+    render();
+  }
+}
+
+function startOver() {
+  history = [];
+  closeAllTooltips();
+  render();
+  requestAnimationFrame(function() {
+    var heading = document.querySelector('.question-text');
+    if (heading) {
+      heading.focus();
+    }
+  });
+}
+
+function toggleTooltip(btn, tipId) {
+  var panel = document.getElementById(tipId);
+  var isOpen = panel.classList.contains('visible');
+
+  closeAllTooltips();
+
+  if (!isOpen) {
+    panel.classList.add('visible');
+    btn.setAttribute('aria-expanded', 'true');
+    openTooltipId = tipId;
+  }
+}
+
+function closeAllTooltips() {
+  var panels = document.querySelectorAll('.tooltip-panel.visible');
+  for (var i = 0; i < panels.length; i++) {
+    panels[i].classList.remove('visible');
+  }
+  var btns = document.querySelectorAll('.tooltip-btn[aria-expanded="true"]');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].setAttribute('aria-expanded', 'false');
+  }
+  openTooltipId = null;
+}
+
+function showAltSection(show) {
+  var section = document.getElementById('altSection');
+  if (show) {
+    section.style.display = '';
+  } else {
+    section.style.display = 'none';
+    // Also collapse it when hiding
+    var content = document.getElementById('altContent');
+    var toggle = document.getElementById('altToggle');
+    content.classList.remove('visible');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function toggleAlt() {
+  var content = document.getElementById('altContent');
+  var toggle = document.getElementById('altToggle');
+  var isVisible = content.classList.contains('visible');
+
+  if (isVisible) {
+    content.classList.remove('visible');
+    toggle.setAttribute('aria-expanded', 'false');
+  } else {
+    content.classList.add('visible');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+// Close tooltips on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (openTooltipId) {
+      // Return focus to the tooltip button
+      var btn = document.querySelector('.tooltip-btn[aria-controls="' + openTooltipId + '"]');
+      closeAllTooltips();
+      if (btn) btn.focus();
+    }
+  }
+});
+
+// Close tooltips when clicking outside
+document.addEventListener('click', function(e) {
+  if (openTooltipId && !e.target.closest('.tooltip-wrapper')) {
+    closeAllTooltips();
+  }
+});
+
+// Bind the alt toggle
+document.getElementById('altToggle').addEventListener('click', toggleAlt);
+
+// Initial render
+render();
+</script>
+
+</body>
+</html>
