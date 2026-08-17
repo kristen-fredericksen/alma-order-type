@@ -1183,7 +1183,23 @@ document.getElementById('altToggle').addEventListener('click', toggleAlt);
 
 // Initial render
 render();
+
+// Hide header and footer when embedded in an iframe (e.g., Alma widget)
+if (window.self !== window.top) {
+  document.body.classList.add('embedded');
+}
 </script>
+
+<style>
+  .embedded header,
+  .embedded footer {
+    display: none;
+  }
+
+  .embedded .container {
+    padding-top: 0.75rem;
+  }
+</style>
 
 </body>
 </html>
