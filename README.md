@@ -2,7 +2,7 @@
 
 A decision tree that helps CUNY library staff choose the correct Alma purchase order line (POL) order type. Answer a few questions about what you're ordering, and the tool recommends the right order type with an explanation.
 
-**Live:** [ols.cuny.edu/alma/order-type.html](https://ols.cuny.edu/alma/order-type.html)
+**Live:** [ols.cuny.edu/alma/alma-order-type/](https://ols.cuny.edu/alma/alma-order-type/)
 
 ## What it does
 
