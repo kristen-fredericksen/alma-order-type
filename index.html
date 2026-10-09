@@ -1197,7 +1197,8 @@ function render() {
     html += '</div>';
   }
 
-  /* Alternative order types section */
+  /* Alternative order types section (recommendation cards only) */
+  if (node.type === 'rec') {
   html += '<section class="alt-section" data-noprint>';
   html += '<h2 style="margin:0;font:inherit;">';
   html += '<button type="button" class="alt-toggle" aria-expanded="' + (state.altOpen ? 'true' : 'false') + '" aria-controls="alt-panel" onclick="toggleAlt()">';
@@ -1221,6 +1222,7 @@ function render() {
     html += '</div>';
   }
   html += '</section>';
+  }
 
   main.innerHTML = html;
 
